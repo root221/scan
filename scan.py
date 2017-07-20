@@ -3,8 +3,10 @@ import serial
 import cv2
 import time
 import numpy as np
+from PIL import Image
+import time
 def init():
-	print("init")
+	
 	'''
 	camera = cv2.VideoCapture(0)
 	print("finish camera")
@@ -30,20 +32,18 @@ def init():
 	return camera
 
 
+def crop_image(img):
+	half_width = img.size[0]
+	
+	half_height = img.size[1]
+	img = img.crop(
+		(half_width - 130, half_height - 130, half_width + 130, half_height + 130)
+	)
 
-
-def get_sub_frame(frame,x_min,x_max,y_min,y_max):
-    sub_frame = np.zeros((x_max-x_min,y_max-y_min,3)) 
-    # frame shape 720, 1280
-    for channel in range(3):
-        for x in range(x_min,x_max,1):
-            for y in range(y_min,y_max,1):
-                sub_frame[x-x_min][y-y_min][channel] = frame[x][y][channel]  
-    return sub_frame
-
+	return img
 
 def get_img(camera,x,y):
-	
+	time.sleep(1)
 	ret,frame = camera.read()
 	return frame 
 

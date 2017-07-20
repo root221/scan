@@ -7,10 +7,12 @@ import SocketServer
 import socket
 import base64
 import cv2
+
 import numpy as np
 
 from websocket import WebSocketHandler, MAGIC_STRING
-from scan import init,get_img,get_sub_frame
+from scan import init,get_img,crop_image
+from PIL import Image
 camera = cv2.VideoCapture(0)
 camera.set(3,1024)
 camera.set(4,768)
@@ -36,14 +38,23 @@ class MyWebsocketHandler(WebSocketHandler):
 
     def on_text_message(self, text):
         if(text == "scan"):
+            merge_img = Image.new('RGB',(260 * 10,260 * 10),(255,255,255))
             for i in range(0,10):
                 for j in range(0,10):
                     img = get_img(camera,i,j)
                     # convert ndarray to str
-                    img = get_sub_frame(img,100,300,100,300)
-                    #print(type(img))
-                    img_str = cv2.imencode('.jpg', img)[1].tostring()
+                    #img_str = cv2.imencode('.jpg', img)[1].tostring()
+                    
+                    # convert ndarray to PIL Image
+                    offset = (130*i,130*j)
+                    pil_img = Image.fromarray(img)
+                    crop_img = crop_image(pil_img)
+
+                    merge_img.paste(crop_img,offset)
+                    img_str = merge_img.tobytes("jpeg","RGB")
+                    self.send_text(str(i*10+j))
                     self.send_binary(img_str)
+       
 
 
     def on_binary_message(self, buf):
