@@ -1,0 +1,77 @@
+<html>
+<head>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+</head>
+<body>
+	<img id="logo" width="220" height="277" src="logo.png">
+	<p>Canvas:</p>
+	<canvas id="myCanvas" width="300" height="300" style="border:1px solid #d3d3d3;">
+		
+	</canvas>
+	<button id="zoom_in">
+		zoom in
+	</button>
+	<button id="zoom_out">
+		zoom out
+	</button>
+	<script>
+	var state = 300;
+	var mousedown_x;
+	var mousedown_y;
+	var is_mousedown = false;
+	window.onload = function() {
+		var c = document.getElementById("myCanvas")
+		var context = c.getContext("2d")
+		var img = document.getElementById("logo")
+		context.drawImage(img,0,0,300,300)
+		
+	}
+	$("#zoom_in").click(function(){
+		var c = document.getElementById("myCanvas")
+		c.width = 300;
+		var context = c.getContext("2d")
+		var img = document.getElementById("logo")
+		state = state + 100;
+		context.drawImage(img,0,0,state,state)
+	})
+	$("#zoom_out").click(function(){
+		var c = document.getElementById("myCanvas")
+		c.width = 300;
+		var context = c.getContext("2d")
+		var img = document.getElementById("logo")
+		state = state - 100;
+		context.drawImage(img,0,0,state,state)
+	})
+	
+	$("#myCanvas").mousemove(function(e){	
+			
+			
+			
+		if(is_mousedown){
+			var x = e.clientX;
+			var y = e.clientY;
+			var c = document.getElementById("myCanvas")
+			// clear the canvas by reset width 
+			c.width = 300; 
+			var canvas_bound = c.getBoundingClientRect();
+
+			var context = c.getContext("2d")
+			var img = document.getElementById("logo")
+			context.drawImage(img,x - mousedown_x, y - mousedown_y,state,state)
+		}
+	})
+	$("#myCanvas").mousedown(function(e){
+		mousedown_x = e.pageX;
+		mousedown_y = e.pageY;
+		is_mousedown = true;
+		
+	})
+
+	$("#myCanvas").mouseup(function(e){
+		is_mousedown = false
+	})
+	</script>
+</body>
+
+</html>
