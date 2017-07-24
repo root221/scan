@@ -39,17 +39,20 @@ class MyWebsocketHandler(WebSocketHandler):
     def on_text_message(self, text):
         if(text == "scan"):
             merge_img = Image.new('RGB',(260 * 10,260 * 10),(255,255,255))
+            ser = init()
             for i in range(0,10):
                 for j in range(0,10):
-                    img = get_img(camera,i,j)
+                    
+                    img = get_img(camera,ser,i*10,j*10)
                     # convert ndarray to str
                     #img_str = cv2.imencode('.jpg', img)[1].tostring()
                     
                     # convert ndarray to PIL Image
-                    offset = (130*i,130*j)
+                    offset = (260*i,260*j)
                     pil_img = Image.fromarray(img)
+                    pil_img.save("test.jpg")
                     crop_img = crop_image(pil_img)
-
+                    crop_img.save("test.jpg")
                     merge_img.paste(crop_img,offset)
                     img_str = merge_img.tobytes("jpeg","RGB")
                     self.send_text(str(i*10+j))

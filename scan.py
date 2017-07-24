@@ -15,36 +15,44 @@ def init():
 	camera.set(5,30)
 	camera.set(15, -8)
 	'''
-	'''
+	
 	ser = serial.Serial(timeout=0.2)
 	ser.port = '/dev/cu.wchusbserial1410'
-	ser.baudrate = 250000
+	ser.baudrate = 115200
 	ser.open()
-	select((ser.fileno(), ), (), ())
+	print(ser.is_open)
+	time.sleep(5)
 	ser.write(b'G28\n')
-	
+	line = ser.readline()
+	print(line)
 	while(1):
 		line = ser.readline()
 		if line == b'ok\n':
 			break
-	'''
 	
-	return camera
+	
+	return ser
 
 
 def crop_image(img):
-	half_width = img.size[0]
+	half_width = img.size[0] / 2
 	
-	half_height = img.size[1]
+	half_height = img.size[1] / 2
 	img = img.crop(
 		(half_width - 130, half_height - 130, half_width + 130, half_height + 130)
 	)
 
 	return img
 
-def get_img(camera,x,y):
-	time.sleep(1)
+def get_img(camera,ser,x,y):
+	cmd = "G1 F2000 X" + str(x) + " Y" + str(y) + "\n"
+	ser.write(str.encode(cmd))
+	while (1):
+		line = ser.readline()
+		if line == b'ok\n':
+			break
 	ret,frame = camera.read()
+	time.sleep(1)
 	return frame 
 
 
