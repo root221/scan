@@ -15,10 +15,9 @@
       <div class="row">
         <div class="col">
           
-          <img id="image" src="Youngshirai.png">  
           
           
-          <canvas id="myCanvas" width="2600" height="2600" style="border:1px solid #d3d3d3;">
+          <canvas id="myCanvas" width="1024" height="600" style="border:1px solid #d3d3d3;">
 
           
            
@@ -55,7 +54,8 @@
   var state = 0;
   var progress_percent = 0;
   var ws;
-  var imgSize = 2600;
+  var imgWidth = 1024;
+  var imgHeight = 600;
   var mousedownX = 0;
   var mousedownY = 0;
   var mouseX = 0;
@@ -69,14 +69,11 @@
   
   img.src = "Youngshirai.png"
   
-
-
-
   $("#bar").hide()
   window.onload = function(){
     var c = document.getElementById("myCanvas")
     var ctx = c.getContext("2d")
-    ctx.drawImage(img,0,0,imgSize,imgSize)
+    ctx.drawImage(img,0,0,imgWidth,imgHeight)
   }
   
   
@@ -104,9 +101,20 @@
             var ctx = c.getContext("2d")
             offsetX = 0
             offsetY = 0
-            ctx.drawImage(img,0,0,imgSize,imgSize)
-            $("#image").attr("src",reader.result)
-          } 
+            ctx.drawImage(img,0,0,imgWidth,imgHeight)
+            img.onload = function() {
+              
+              var c = document.getElementById("myCanvas")
+              // clear the canvas by reset width 
+              c.width = c.width
+              var ctx = c.getContext("2d")
+              offsetX = 0
+              offsetY = 0
+              ctx.drawImage(img,0,0,imgWidth,imgHeight)
+            };
+            
+          }
+
         }                          
         else{
           $("#bar").css("width", msg.data + "%")
@@ -125,8 +133,8 @@
       var ctx = c.getContext("2d")
       offsetX = 0
       offsetY = 0
-      ctx.drawImage(img,0,0,imgSize,imgSize)
-      
+      ctx.drawImage(img,0,0,imgWidth,imgHeight)
+      ws.send("cancel") 
       $("#bar").hide()
       ws.close();
     }
@@ -136,20 +144,22 @@
     // clear the canvas by reset width 
     c.width = c.width
     var ctx = c.getContext("2d")
-    imgSize += 100
+    imgWidth += 100
+    imgHeight += 100
     offsetX = 0
     offsetY = 0
-    ctx.drawImage(img,0,0,imgSize,imgSize)
+    ctx.drawImage(img,0,0,imgWidth,imgHeight)
   })
   $("#zoom_out").click(function(){
     var c = document.getElementById("myCanvas")
     // clear the canvas by reset width 
     c.width = c.width
     var ctx = c.getContext("2d")
-    imgSize -= 100
+    imgWidth -= 100
+    imgHeight -= 100
     offsetX = 0
     offsetY = 0
-    ctx.drawImage(img,0,0,imgSize,imgSize)
+    ctx.drawImage(img,0,0,imgWidth,imgHeight)
   })
   $("#myCanvas").mousedown(function(e){
     isMousedown = true
@@ -159,7 +169,7 @@
     offsetY = newOffsetY
   })
   $("#myCanvas").mousemove(function(e){
-    if(isMousedown && imgSize > 2600){
+    if(isMousedown && imgWidth > 1024){
       var moveDisX,
           moveDisY
       var c = document.getElementById("myCanvas")
@@ -172,17 +182,17 @@
       newOffsetX = offsetX + moveDisX
       newOffsetY = offsetY + moveDisY
       
-      if (newOffsetX <= c.width - imgSize)
-        newOffsetX = c.width - imgSize
+      if (newOffsetX <= c.width - imgWidth)
+        newOffsetX = c.width - imgWidth
       else if(newOffsetX > 0)
         newOffsetX = 0
 
-      if (newOffsetY <= c.width - imgSize)
-        newOffsetY = c.width - imgSize
+      if (newOffsetY <= c.height - imgHeight)
+        newOffsetY = c.height - imgHeight
       else if(newOffsetY > 0)
         newOffsetY = 0
 
-      ctx.drawImage(img, newOffsetX, newOffsetY, imgSize, imgSize)
+      ctx.drawImage(img, newOffsetX, newOffsetY, imgWidth, imgHeight)
     }
   })
 

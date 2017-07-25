@@ -45,6 +45,7 @@ def crop_image(img):
 	return img
 
 def get_img(camera,ser,x,y):
+#def get_img(camera,x,y):
 	cmd = "G1 F2000 X" + str(x) + " Y" + str(y) + "\n"
 	ser.write(str.encode(cmd))
 	while (1):
