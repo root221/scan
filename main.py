@@ -19,7 +19,9 @@ camera.set(4,768)
 camera.set(5,30)
 camera.set(15, -8)
 
-scan = False
+global scan 
+global merge_img 
+global ser  
 
 class MyWebsocketHandler(WebSocketHandler):
     def serve_forever(self):
@@ -37,38 +39,52 @@ class MyWebsocketHandler(WebSocketHandler):
             print("Error", e)
 
     def on_text_message(self, text):
-        
         if(text == "scan"):
+            print(text)
+            global scan
             scan = True
-            merge_img = Image.new('RGB',(260 * 10,260 * 10),(255,255,255))
+            global merge_img
+            merge_img = Image.new('RGB',(170 * 10,200 * 10),(255,255,255))
+            global ser
             ser = init()
-            for i in range(0,10):
-                for j in range(0,10):
-                    if(scan):
-                        img = get_img(camera,ser,i*10,j*10)
-                        #img = get_img(camera,i*10,j*10)
-                        # convert ndarray to str
-                        #img_str = cv2.imencode('.jpg', img)[1].tostring()
-                        cv2.imwrite("test1.jpg",img) 
-                        # convert ndarray to PIL Image
-                        offset = (260*i,260*j)
-                        #OpenCV stores color image in BGR format. So, the converted PIL image is also in BGR-format. The standard PIL image is stored in RGB format. 
-                        RGBImg =  np.zeros(img.shape,img.dtype)
-                        RGBImg[:,:,0] = img[:,:,2]
-                        RGBImg[:,:,1] = img[:,:,1]
-                        RGBImg[:,:,2] = img[:,:,0]
-                        pil_img = Image.fromarray(RGBImg)
-                        pil_img.save("test.jpg")
-                        crop_img = crop_image(pil_img)
-                        #crop_img.save("test.jpg")
-                        merge_img.paste(crop_img,offset)
-                        img_str = merge_img.tobytes("jpeg","RGB")
-                        self.send_text(str(i*10+j))
-                        self.send_binary(img_str)
+            self.send_text("start scanning")
         
+        if(text[0:10] == "get image "):
+            
+            text = text[10:]
+           
+            x,y = text.split(" ")
+            x = int(x)
+            y = int(y) 
+            img = get_img(camera,ser,x*10,y*10)
+            #img = get_img(camera,i*10,j*10)
+            # convert ndarray to str
+            #img_str = cv2.imencode('.jpg', img)[1].tostring()
+            
+            # convert ndarray to PIL Image
+            offset = (170*x,200*y)
+            #OpenCV stores color image in BGR format. So, the converted PIL image is also in BGR-format. The standard PIL image is stored in RGB format. 
+            RGBImg =  np.zeros(img.shape,img.dtype)
+            RGBImg[:,:,0] = img[:,:,2]
+            RGBImg[:,:,1] = img[:,:,1]
+            RGBImg[:,:,2] = img[:,:,0]
+            pil_img = Image.fromarray(RGBImg)
+            pil_img.save("test" + str(x) + str(y) + ".jpg") 
+            crop_img = crop_image(pil_img)
+            #crop_img.save("test.jpg")
+
+            merge_img.paste(crop_img,offset)
+            img_str = merge_img.tobytes("jpeg","RGB")
+            merge_img.save("merge.jpg") 
+            self.send_text(str(x) + " " + str(y))
+            self.send_binary(img_str)
+
         if(text == "cancel"):
-            print "cancel"
+            print(text)
             scan = False
+            merge_img = 0
+            
+
 
     def on_binary_message(self, buf):
         print(buf)
@@ -104,7 +120,7 @@ class ThreadingHTTPServer(SocketServer.ThreadingMixIn, HTTPServer):
 
 
 def main():
-    httpd = ThreadingHTTPServer(("", 8080), MyHttpRequestHandler)
+    httpd = ThreadingHTTPServer(("", 8081), MyHttpRequestHandler)
     httpd.serve_forever()
 
 if __name__ == "__main__":

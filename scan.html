@@ -66,7 +66,7 @@
   var newOffsetX = 0;
   var newOffsetY = 0;
   var img = new Image()
-  
+  var scan = false 
   img.src = "Youngshirai.png"
   
   $("#bar").hide()
@@ -84,7 +84,7 @@
       
       $("#bar").show()
       $("#bar").css("width", "0%");
-      ws = new WebSocket("ws://localhost:8080")
+      ws = new WebSocket("ws://localhost:8081")
       ws.onopen = function(event){
         ws.send("scan")
       }
@@ -95,13 +95,7 @@
           reader.onloadend = function(f){
             img.src = reader.result
             
-            var c = document.getElementById("myCanvas")
-            // clear the canvas by reset width 
-            c.width = c.width
-            var ctx = c.getContext("2d")
-            offsetX = 0
-            offsetY = 0
-            ctx.drawImage(img,0,0,imgWidth,imgHeight)
+            
             img.onload = function() {
               
               var c = document.getElementById("myCanvas")
@@ -114,11 +108,30 @@
             };
             
           }
-
-        }                          
+          
+          
+        }
+        else if(msg.data == "start scanning"){
+          
+          scan = true
+          ws.send("get image 0 0")
+        }                       
         else{
-          $("#bar").css("width", msg.data + "%")
-          console.log(msg.data)
+          if(scan){
+            coord = msg.data.split(" ")
+            x = parseInt(coord[0])
+            y = parseInt(coord[1])
+            if (y < 10)
+              y += 1
+            else{
+              x += 1
+              y = 0
+            }
+
+            ws.send("get image " + x + " " + y)
+            $("#bar").css("width", x*10 + y + "%")
+            console.log(msg.data)
+          }
         }
       }
     }
@@ -134,6 +147,7 @@
       offsetX = 0
       offsetY = 0
       ctx.drawImage(img,0,0,imgWidth,imgHeight)
+      scan = false
       ws.send("cancel") 
       $("#bar").hide()
       ws.close();
