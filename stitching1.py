@@ -1,20 +1,18 @@
 import cv2
 import numpy as np
 
-files = ["1Hill.JPG","2Hill.JPG","3Hill.JPG"]
+files = ["1Hill.JPG","2Hill.JPG"]
 MIN_MATCH_COUNT = 4
 
 def drawMatch(img1,img2,kp1,kp2,good,mask):
 	w = img1.shape[1] 
 	vis = np.zeros((max(img1.shape[0],img2.shape[0]),img1.shape[1] + img2.shape[1],3),dtype="uint8") 
-	vis[:,0:img1.shape[1],:] = img1
-	vis[:,img1.shape[1]:] = img2
+	vis[0:img1.shape[0],0:img1.shape[1],:] = img1
+	vis[0:img2.shape[0],img1.shape[1]:] = img2
 	
 
 	for (m,s) in zip(good,mask):
 		if s:
-			
-
 			pt1 = (int(kp1[m.queryIdx].pt[0]),int(kp1[m.queryIdx].pt[1]))
 			pt2 = (int(kp2[m.trainIdx].pt[0]+w),int(kp2[m.trainIdx].pt[1]))
 			cv2.line(vis, pt1, pt2, (0, 255, 0), 1)
@@ -69,16 +67,22 @@ for i in range(len(imgs)-1):
 		H,mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
 	drawMatch(img1,img2,kp1,kp2,good,mask)
 	# warp image
-	result = cv2.warpPerspective(img2,H,(150+imgs[i].shape[1],img1.shape[0]))
-	
-	result[0:img1.shape[0], 0:img1.shape[1]] = img1
+	start = np.dot(H,np.array([0,0,1]))
+	end = np.dot(H,np.array([img2.shape[1],img2.shape[0],1]))
+	end = end / end[-1]
+	print(start)
+	print(end)
+	#result = cv2.warpPerspective(img2,H,())
+	result = cv2.warpPerspective(img2,H,(int(end[0]),int(end[1])))
+	result[0:int(end[1]), 0:img1.shape[0]] = img1[0:int(end[1]),0:img1.shape[0]]
 	imgs[i+1] = result
-	cv2.imwrite("result.jpg",result)
 '''
 result = np.zeros((imgs[0].shape[0],3000,3),dtype="uint8")
 print(result.shape)
 result[:,0:400] = imgs[0]
 result[:,400:700] = imgs[1]
-cv2.imwrite("result.jpg",result)
 '''
+result = imgs[1]
+cv2.imwrite("result1.jpg",result)
+
 
