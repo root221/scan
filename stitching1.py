@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-files = ["1Hill.JPG","2Hill.JPG"]
+files = ["1Hill.JPG","2Hill.JPG","3Hill.JPG"]
 MIN_MATCH_COUNT = 4
 
 def drawMatch(img1,img2,kp1,kp2,good,mask):
@@ -68,13 +68,20 @@ for i in range(len(imgs)-1):
 	drawMatch(img1,img2,kp1,kp2,good,mask)
 	# warp image
 	start = np.dot(H,np.array([0,0,1]))
+	up = np.dot(H,np.array([img2.shape[1],0,1]))
+	up = up / up[-1]
 	end = np.dot(H,np.array([img2.shape[1],img2.shape[0],1]))
 	end = end / end[-1]
 	print(start)
+	print(up)
 	print(end)
 	#result = cv2.warpPerspective(img2,H,())
-	result = cv2.warpPerspective(img2,H,(int(end[0]),int(end[1])))
-	result[0:int(end[1]), 0:img1.shape[0]] = img1[0:int(end[1]),0:img1.shape[0]]
+	result = cv2.warpPerspective(img2,H,(int(min(end[0],up[0])),int(end[1])))
+	print(result.shape)
+	result[0:int(end[1]), 0:img1.shape[1]] = img1[0:int(end[1]),0:img1.shape[1]]
+	img2 = img1[0:int(end[1]),0:img1.shape[1]]
+	cv2.imwrite("result1.jpg",result)
+	print(img2.shape)
 	imgs[i+1] = result
 '''
 result = np.zeros((imgs[0].shape[0],3000,3),dtype="uint8")
@@ -82,7 +89,7 @@ print(result.shape)
 result[:,0:400] = imgs[0]
 result[:,400:700] = imgs[1]
 '''
-result = imgs[1]
+result = imgs[2]
 cv2.imwrite("result1.jpg",result)
 
 
