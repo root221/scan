@@ -67,29 +67,22 @@ for i in range(len(imgs)-1):
 		H,mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
 	drawMatch(img1,img2,kp1,kp2,good,mask)
 	# warp image
-	start = np.dot(H,np.array([0,0,1]))
-	up = np.dot(H,np.array([img2.shape[1],0,1]))
-	up = up / up[-1]
-	end = np.dot(H,np.array([img2.shape[1],img2.shape[0],1]))
-	end = end / end[-1]
-	print(start)
-	print(up)
-	print(end)
+	top_left = np.dot(H,np.array([0,0,1]))
+	top_right = np.dot(H,np.array([img2.shape[1],0,1]))
+	top_right = top_right / top_right[-1]
+	bottom_right = np.dot(H,np.array([img2.shape[1],img2.shape[0],1]))
+	bottom_right = bottom_right / bottom_right[-1]
+	
 	#result = cv2.warpPerspective(img2,H,())
-	result = cv2.warpPerspective(img2,H,(int(min(end[0],up[0])),int(end[1])))
-	print(result.shape)
-	result[0:int(end[1]), 0:img1.shape[1]] = img1[0:int(end[1]),0:img1.shape[1]]
-	img2 = img1[0:int(end[1]),0:img1.shape[1]]
-	cv2.imwrite("result1.jpg",result)
-	print(img2.shape)
+	result = cv2.warpPerspective(img2,H,(int(min(bottom_right[0],top_right[0])),int(bottom_right[1])))
+	
+	result[0:int(bottom_right[1]), 0:img1.shape[1]] = img1[0:int(bottom_right[1]),0:img1.shape[1]]
+	img2 = img1[0:int(bottom_right[1]),0:img1.shape[1]]
+	
+	
 	imgs[i+1] = result
-'''
-result = np.zeros((imgs[0].shape[0],3000,3),dtype="uint8")
-print(result.shape)
-result[:,0:400] = imgs[0]
-result[:,400:700] = imgs[1]
-'''
-result = imgs[2]
-cv2.imwrite("result1.jpg",result)
+
+result = imgs[len(imgs)-1]
+cv2.imwrite("result.jpg",result)
 
 
