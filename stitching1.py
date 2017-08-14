@@ -1,28 +1,13 @@
 import cv2
 import numpy as np
+import pickle
 
-files = ["50_9.jpg","60_9.jpg"]
-#files1 = ["60_9.jpg","60_10.jpg","60_11.jpg"]
-#files = ["result2.jpg","result1.jpg"]
+files = ["crop_130_15.jpg","crop_120_15.jpg","crop_110_15.jpg","crop_100_15.jpg","crop_90_15.jpg"]
 MIN_MATCH_COUNT = 4
 
-
-
-H_lst =[ 
-[[  9.93693389e-01,  -1.41020251e-03,   1.98509022e+02],
- [  3.77828452e-03,   9.96561109e-01,   3.63943481e+00],
- [  9.16743487e-06,   3.36257675e-07,   1.00000000e+00]],
-[[  1.00218468e+00,   3.57555698e-03,   3.89415254e+02],
- [  9.32819539e-03,   1.00220851e+00,   5.59373923e+00],
- [  2.51168566e-05,   6.23226680e-06,   1.00000000e+00]],
-[[  9.91767706e-01,   1.04687533e-02,   5.84248309e+02],
- [  1.10888095e-02,   9.97858151e-01,   1.09348504e+01],
- [  2.95120139e-05,   1.43534827e-05,   1.00000000e+00]],
-[[  9.79350147e-01,   1.05576063e-03,  7.76942039e+02],
- [  1.42763382e-02,   9.81230020e-01,  1.80020745e+01],
- [  3.62510474e-05,   6.38106937e-06,  1.00000000e+00]]
-]
-
+#with (open("H.p","rb")) as f:
+#	H_lst = pickle.load(f)["mtx"]
+H_lst = []
 def drawMatch(img1,img2,kp1,kp2,good,mask,direction):
 	if(direction == "horizontal"):
 		w = img1.shape[1] 
@@ -105,7 +90,7 @@ imgs = []
 for file in files:
 	img = cv2.imread(file)
 	imgs.append(img)
-
+	print(img.shape)
 
 for i in range(len(imgs)-1):
 	
@@ -135,7 +120,7 @@ for i in range(len(imgs)-1):
 		if m.distance < 0.75*n.distance:
 			good.append(m)
 
-	print(len(good))
+	print(len(good))	
 	if len(good) > MIN_MATCH_COUNT:
 
 		src_pts = np.float32([ kp2[m.trainIdx].pt for m in good]).reshape(-1,1,2)
@@ -144,7 +129,8 @@ for i in range(len(imgs)-1):
 		H,mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
 	direction = "horizontal"
 	drawMatch(img1,img2,kp1,kp2,good,mask,direction)
-	print(H)
+	print(H)	
+	H_lst.append(H)
 	#H = np.array(H_lst[i])
 	top_left = np.dot(H,np.array([0,0,1]))
 	
@@ -166,13 +152,19 @@ for i in range(len(imgs)-1):
 	result = cv2.warpPerspective(img2,H,(int(min(bottom_right[0],top_right[0])),min(img1.shape[0],int(bottom_right[1]))))
 	result[0:min(img1.shape[0],int(bottom_right[1])), 0:img1.shape[1]] = img1[0:min(img1.shape[0],int(bottom_right[1])),0:img1.shape[1]]
 	# warp image top to bottom
-	#bottom = min(bottom_right[1],bottom_left[1])
-	#result = cv2.warpPerspective(img2,H,(int(bottom_right[0]),int(min(bottom_right[1],bottom_left[1]))))
-	#result[0:img1.shape[0],:] = img1[:,0:int(bottom_right[0])]
-	#imgs[i+1] = result
+	width = int(min(bottom_right[0],top_right[0],img1.shape[1]))
+	height = int(min(bottom_right[1],bottom_left[1]))
+	result = cv2.warpPerspective(img2,H,(width,height))
+	#result[0:img1.shape[0],0:img1.shape[1]] = img1[:,:]
+	height = min(img1.shape[0],result.shape[0])
+	width = min(img1.shape[1],result.shape[1])
+	result[0:height,0:width] = img1[0:height,0:width]
+	imgs[i+1] = result
 
+mtx_pickle = {}
+mtx_pickle["mtx"] = H_lst
+pickle.dump( mtx_pickle, open( "H1.p", "wb" ) )
 
-#result = imgs[len(imgs)-1]
-cv2.imwrite("result3.jpg",result)
+cv2.imwrite("result8.jpg",result)
 
 
