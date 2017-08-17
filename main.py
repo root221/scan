@@ -12,17 +12,23 @@ import numpy as np
 
 from websocket import WebSocketHandler, MAGIC_STRING
 from scan import init,get_img,crop_image
+from stitch import stitch
 from PIL import Image
 camera = cv2.VideoCapture(0)
-camera.set(3,1024)
-camera.set(4,768)
-camera.set(5,30)
-camera.set(15, -8)
+#camera.set(3,1280)
+#camera.set(4,720)
+#camera.set(3,1024)
+#camera.set(4,768)
+#camera.set(5,30)
+#camera.set(15, -8)
+
+width = 90
+height = 60
 
 global scan 
-global merge_img 
+global stitch_img
 global ser  
-
+global imgs
 class MyWebsocketHandler(WebSocketHandler):
     def serve_forever(self):
         try:
@@ -41,10 +47,16 @@ class MyWebsocketHandler(WebSocketHandler):
     def on_text_message(self, text):
         if(text == "scan"):
             print(text)
+            global result
+            result = []
             global scan
             scan = True
-            global merge_img
-            merge_img = Image.new('RGB',(170 * 10,200 * 10),(255,255,255))
+            #global merge_img
+            #merge_img = Image.new('RGB',(170 * 10,200 * 10),(255,255,255))
+            global stitch_img
+            stitch_img = np.zeros((1434, 2385, 3),dtype="uint8")
+            global imgs
+            imgs = []
             global ser
             ser = init()
             self.send_text("start scanning")
@@ -62,22 +74,67 @@ class MyWebsocketHandler(WebSocketHandler):
             #img_str = cv2.imencode('.jpg', img)[1].tostring()
             
             # convert ndarray to PIL Image
-            offset = (170*x,200*y)
             #OpenCV stores color image in BGR format. So, the converted PIL image is also in BGR-format. The standard PIL image is stored in RGB format. 
             RGBImg =  np.zeros(img.shape,img.dtype)
             RGBImg[:,:,0] = img[:,:,2]
             RGBImg[:,:,1] = img[:,:,1]
             RGBImg[:,:,2] = img[:,:,0]
             pil_img = Image.fromarray(RGBImg)
-            pil_img.save("test" + str(x) + str(y) + ".jpg") 
+            
+            # crop the image 
             crop_img = crop_image(pil_img)
-            #crop_img.save("test.jpg")
+            
+            # convert PIL to opencv image
+            open_cv_image = np.array(crop_img)  
+            open_cv_image = open_cv_image[:, :, ::-1].copy()
+            cv2.imwrite(str(y) + ".jpg",open_cv_image)
+            imgs.append(open_cv_image)
+            
+            # stitch image
+            
+            if len(imgs) > 1 and y < 9:            
+                (img,offset_y) = stitch(imgs,"horizontal",y-1,x)
+                imgs = [img]    
+                img = img[offset_y:,:]
+            
+            if(x==0):
+                stitch_img = np.zeros((1434, 2385, 3),dtype="uint8")
+                stitch_img[0:img.shape[0],0:img.shape[1]] = img
+                img_str = cv2.imencode('.jpg', stitch_img)[1].tostring()
+                self.send_binary(img_str)
+            if(y == 8):
+                imgs = []
+                cv2.imwrite("test_1" + str(x) + ".jpg",img)
+                result.append(img)
+            # stitch image from left to right
+            '''
+            if(len(imgs) * 10 == width):
+                imgs = imgs[::-1]
+                img = stitch(imgs,"horizontal")
+                result.append(img)
+                imgs = []
+                # return the result to front-end when there is one image
+                if(len(result) == 1):
+                    img_str = cv2.imencode('.jpg', img)[1].tostring()
+                
+                #self.send_binary(img_str)
+            '''
+            
+            if(len(result) > 1):
+                img,offset_y = stitch(result,"vertical",0,x-1)
+                result = [img]
+                cv2.imwrite("result1.jpg",img)
+                
+                # return the result to front-end 
+                stitch_img[0:img.shape[0],:,:] = img
+                img_str = cv2.imencode('.jpg', stitch_img)[1].tostring()
 
-            merge_img.paste(crop_img,offset)
-            img_str = merge_img.tobytes("jpeg","RGB")
-            merge_img.save("merge.jpg") 
+                self.send_binary(img_str)
+            
+            #img_str = merge_img.tobytes("jpeg","RGB")
+            
+
             self.send_text(str(x) + " " + str(y))
-            self.send_binary(img_str)
 
         if(text == "cancel"):
             print(text)

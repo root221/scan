@@ -35,25 +35,24 @@ def init():
 
 
 def crop_image(img):
-	half_width = img.size[0] / 2
-	
-	half_height = img.size[1] / 2
-	img = img.crop(
-		(half_width - 85, half_height - 100, half_width + 85, half_height + 100)
-	)
-
+	print(img.size)
+	img = img.crop((100,50,1180,670))
 	return img
 
 def get_img(camera,ser,x,y):
-	x = 100 - x 	
-	y = y + 10
-	cmd = "G1 F2000 X" + str(y) + " Y" + str(x) + "\n"
+	x = 60 + x	
+	y = 140 - y
+	cmd = "G1 F5000 X" + str(x) + " Y" + str(y) + "\n"
+	print(cmd)
 	ser.write(str.encode(cmd))
 	while (1):
 		line = ser.readline()
 		if line == b'ok\n':
 			break
-	time.sleep(1)
+	if(y == 140):
+		time.sleep(5)
+	else:
+		time.sleep(0.5)
 	ret,frame = camera.read()
 	
 	return frame 
