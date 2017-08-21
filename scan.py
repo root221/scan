@@ -21,7 +21,7 @@ def init():
 	ser.baudrate = 115200
 	ser.open()
 	print(ser.is_open)
-	time.sleep(5)
+	time.sleep(3)
 	ser.write(b'G28\n')
 	line = ser.readline()
 	print(line)
@@ -40,19 +40,19 @@ def crop_image(img):
 	return img
 
 def get_img(camera,ser,x,y):
-	x = 60 + x	
-	y = 140 - y
-	cmd = "G1 F5000 X" + str(x) + " Y" + str(y) + "\n"
-	print(cmd)
+	x = 30 + x	
+	y = 160 - y
+	cmd = "G1 F8000 X" + str(x) + " Y" + str(y) + "\n"
+	
 	ser.write(str.encode(cmd))
 	while (1):
 		line = ser.readline()
 		if line == b'ok\n':
 			break
-	if(y == 140):
-		time.sleep(5)
+	if(y == 160):
+		time.sleep(2)
 	else:
-		time.sleep(0.5)
+		time.sleep(0.2)
 	ret,frame = camera.read()
 	
 	return frame 

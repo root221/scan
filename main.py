@@ -29,6 +29,7 @@ global scan
 global stitch_img
 global ser  
 global imgs
+global height
 class MyWebsocketHandler(WebSocketHandler):
     def serve_forever(self):
         try:
@@ -54,11 +55,13 @@ class MyWebsocketHandler(WebSocketHandler):
             #global merge_img
             #merge_img = Image.new('RGB',(170 * 10,200 * 10),(255,255,255))
             global stitch_img
-            stitch_img = np.zeros((1434, 2385, 3),dtype="uint8")
+            stitch_img = np.zeros((5000, 3297, 3),dtype="uint8")
             global imgs
             imgs = []
             global ser
             ser = init()
+            global height
+            height = 0
             self.send_text("start scanning")
         
         if(text[0:10] == "get image "):
@@ -92,20 +95,22 @@ class MyWebsocketHandler(WebSocketHandler):
             
             # stitch image
             
-            if len(imgs) > 1 and y < 9:            
+            if len(imgs) > 1 and y <= 14:            
                 (img,offset_y) = stitch(imgs,"horizontal",y-1,x)
                 imgs = [img]    
-                img = img[offset_y:,:]
+                #img = img[offset_y:,:]
+            
             
             if(x==0):
-                stitch_img = np.zeros((1434, 2385, 3),dtype="uint8")
+                stitch_img = np.zeros((5000, 3297, 3),dtype="uint8")
                 stitch_img[0:img.shape[0],0:img.shape[1]] = img
                 img_str = cv2.imencode('.jpg', stitch_img)[1].tostring()
                 self.send_binary(img_str)
-            if(y == 8):
+            if(y == 14):
                 imgs = []
-                cv2.imwrite("test_1" + str(x) + ".jpg",img)
+                
                 result.append(img)
+            
             # stitch image from left to right
             '''
             if(len(imgs) * 10 == width):
@@ -119,18 +124,33 @@ class MyWebsocketHandler(WebSocketHandler):
                 
                 #self.send_binary(img_str)
             '''
-            
-            if(len(result) > 1):
-                img,offset_y = stitch(result,"vertical",0,x-1)
-                result = [img]
-                cv2.imwrite("result1.jpg",img)
-                
-                # return the result to front-end 
-                stitch_img[0:img.shape[0],:,:] = img
-                img_str = cv2.imencode('.jpg', stitch_img)[1].tostring()
+            if(len(result) > 1 ):
+                print(x)
+                if (x == 14):
+                    global height
+                    height = result[0].shape[0]
+                    result = [result[1]]
+                else:
+                    #self.send_text(str(x) + " " + str(y))
+                    img,offset_y = stitch(result,"vertical",0,x-1)
+                    cv2.imwrite("result.jpg",img)
+                    result = [img]
+                    
+                    
+                    # return the result to front-end 
+                    if x < 14:
+                        stitch_img[0:img.shape[0],:,:] = img
+                      
+                    else:
+                        a = [stitch_img[0:height,:,:],img]
+                        print(type(a))
+                        print(height)
+                        stitch_img,offset_y = stitch(a,"vertical",0,100)
+                        
+                        
+                    img_str = cv2.imencode('.jpg', stitch_img)[1].tostring()
 
-                self.send_binary(img_str)
-            
+                    self.send_binary(img_str)
             #img_str = merge_img.tobytes("jpeg","RGB")
             
 
