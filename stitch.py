@@ -5,7 +5,7 @@ from find import find
 with (open("H.p","rb")) as f:
 	H_horizontal_lst = pickle.load(f)["mtx"]
 
-with(open("H2.p","rb")) as f:
+with(open("H1.p","rb")) as f:
 	H_vertical_lst = pickle.load(f)["mtx"]
 
 
@@ -23,7 +23,9 @@ def stitch(imgs,direction,x,y):
 		H = np.array(H_horizontal_lst[x])
 	else:
 		#H = find(imgs)
-		H = np.array(H_vertical_lst[y])	
+		H = np.array(H_vertical_lst[y])
+		print(y)
+		print(H)	
 	top_left = np.dot(H,np.array([0,0,1]))
 		
 	top_right = np.dot(H,np.array([img2.shape[1],0,1]))
@@ -57,7 +59,7 @@ def stitch(imgs,direction,x,y):
 			alpha = j * 0.1
 			a = subimg1[:,(j * overlap_width/10) : ((j+1) * overlap_width/10)]
 			b = subimg2[:,(j * overlap_width/10) : ((j+1) * overlap_width/10)]
-			dst[:,(j * overlap_width/10) : ((j+1) * overlap_width/10)] = cv2.addWeighted(a,1,b,0,0)
+			dst[:,(j * overlap_width/10) : ((j+1) * overlap_width/10)] = cv2.addWeighted(a,1 - alpha,b,alpha,0)
 		min_height = min(result.shape[0],img1.shape[0])
 		result[0:min_height, 0:img1.shape[1]] = img1[0:min_height,0:img1.shape[1]]
 		result[offset_y:height-1,overlap_left:overlap_right] = dst
@@ -72,7 +74,8 @@ def stitch(imgs,direction,x,y):
 		overlap_bottom = img1.shape[0] 
 		subimg2 = result[overlap_top:overlap_bottom,0:img2.shape[1]].copy()
 		subimg1 = img1[overlap_top:overlap_bottom,0:img2.shape[1]].copy()
-
+		print(subimg2.shape)
+		print(subimg1.shape)
 		# alpha blending two overlap image	
 		overlap_height = overlap_bottom - overlap_top
 		delta = overlap_height / 10
@@ -82,6 +85,8 @@ def stitch(imgs,direction,x,y):
 			a = subimg1[ j * delta : (j+1) * delta,:] 
 			b = subimg2[ j * delta : (j+1) * delta,:]
 			dst[j * delta : (j+1) * delta,:] = cv2.addWeighted(a,1 - alpha,b,alpha,0)
+			#dst[j * delta : (j+1) * delta,:] = cv2.addWeighted(a,1 ,b,0,0)
+
 		# paste img1 to result image
 		result[0:img1.shape[0], 0:img1.shape[1]] = img1[0:img1.shape[0],0:img1.shape[1]]
 		# paste overlap(blend) region to result image
