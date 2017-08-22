@@ -126,9 +126,14 @@ class MyWebsocketHandler(WebSocketHandler):
                 #self.send_binary(img_str)
             '''
             if len(result) > 1:
-                if x % 9 == 0:
+                if x == 9:
                     global height
                     height = result[0].shape[0]
+                    result = [result[1]]
+                    cv2.imwrite("result.jpg",result[0])
+                elif x == 18:
+                    global height
+                    height = stitch_img.shape[0]
                     result = [result[1]]
                     cv2.imwrite("result.jpg",result[0])
                 else:
@@ -143,10 +148,10 @@ class MyWebsocketHandler(WebSocketHandler):
                   
                 else:
                     a = [stitch_img[0:height,:,:],img]
-                    print(img.shape)
-                    print("b")
-                    stitch_img,offset_y = stitch(a,"vertical",0,8)
-                    cv2.imwrite("stitch_img.jpg",stitch_img) 
+                    if x < 18:
+                        stitch_img,offset_y = stitch(a,"vertical",0,8)
+                    else:
+                        stitch_img,offset_y = stitch(a,"vertical",0,17)
                     
                 #img_str = cv2.imencode('.jpg', img)[1].tostring()
                 img_str = cv2.imencode('.jpg', stitch_img)[1].tostring()
