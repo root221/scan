@@ -36,8 +36,6 @@ class ScanSocketHandler(WebSocketHandler):
             self.ser = init()
             self.imgs = []           
             self.height = 0 
-            
-           
             self.stitch_img = np.zeros((5469, 3262, 3),dtype="uint8")
             self.send_text("start scanning")
         
