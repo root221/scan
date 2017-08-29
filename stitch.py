@@ -6,16 +6,20 @@ MIN_MATCH_COUNT = 200
 
 class Stitcher:
 	
-	def __init__(self,img_list):
+	def __init__(self,img_list=None,H_lst=None):
 		self.img_list = img_list
-	
+		self.H_lst = H_lst
+
 	def stitch_all_images(self):
 
 		if len(self.img_list) == 1:
 			for i in range(len(self.img_list[0])-1):
 				img1 = self.img_list[0][i]
 				img2 = self.img_list[0][i+1]
-				H = self.find_homography(img1,img2)
+				if not self.H_lst:
+					H = self.find_homography(img1,img2)
+				else:
+					H = self.H_lst[0][i]
 				(result,offsety) = self.stitch(img1,img2,"horizontal",H)
 				self.img_list[0][i+1] = result
 

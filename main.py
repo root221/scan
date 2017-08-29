@@ -7,13 +7,14 @@ import SocketServer
 import socket
 import base64
 import cv2
-
+import pickle
 import numpy as np
 
 from websocket import WebSocketHandler, MAGIC_STRING
 from scan import init,get_img,crop_image
-from stitch import stitch
+from stitch import Stitcher
 from PIL import Image
+from handler import ScanSocketHandler
 camera = cv2.VideoCapture(0)
 #camera.set(3,1280)
 #camera.set(4,720)
@@ -25,154 +26,11 @@ camera = cv2.VideoCapture(0)
 width = 90
 height = 60
 
-global scan 
-global stitch_img
-global ser  
-global imgs
-global height
-class MyWebsocketHandler(WebSocketHandler):
-    def serve_forever(self):
-        try:
-            while True:
-                try:
-                    self.do_recv()
-                except socket.error as e:
-                    if e.errno == EAGAIN:
-                        pass
-                    else:
-                        print("socket error", e)
-                        raise
-        except Exception as e:
-            print("Error", e)
+f = open("data/H.p","rb")
+H_lst = pickle.load(f)['mtx']
 
-    def on_text_message(self, text):
-        if(text == "scan"):
-            print(text)
-            global result
-            result = []
-            global scan
-            scan = True
-            #global merge_img
-            #merge_img = Image.new('RGB',(170 * 10,200 * 10),(255,255,255))
-            global stitch_img
-            stitch_img = np.zeros((5000, 3262, 3),dtype="uint8")
-            global imgs
-            imgs = []
-            global ser
-            ser = init()
-            global height
-            height = 0
-            self.send_text("start scanning")
-        
-        if(text[0:10] == "get image "):
-            
-            text = text[10:]
-           
-            x,y = text.split(" ")
-            x = int(x)
-            y = int(y) 
-            img = get_img(camera,ser,x*10,y*10)
-            #img = get_img(camera,i*10,j*10)
-            # convert ndarray to str
-            #img_str = cv2.imencode('.jpg', img)[1].tostring()
-            
-            # convert ndarray to PIL Image
-            #OpenCV stores color image in BGR format. So, the converted PIL image is also in BGR-format. The standard PIL image is stored in RGB format. 
-            RGBImg =  np.zeros(img.shape,img.dtype)
-            RGBImg[:,:,0] = img[:,:,2]
-            RGBImg[:,:,1] = img[:,:,1]
-            RGBImg[:,:,2] = img[:,:,0]
-            pil_img = Image.fromarray(RGBImg)
-            
-            # crop the image 
-            crop_img = crop_image(pil_img)
-            
-            # convert PIL to opencv image
-            open_cv_image = np.array(crop_img)  
-            open_cv_image = open_cv_image[:, :, ::-1].copy()
-            cv2.imwrite(str(y) + ".jpg",open_cv_image)
-            imgs.append(open_cv_image)
-            
-            # stitch image
-            
-            if len(imgs) > 1 and y <= 14:            
-                (img,offset_y) = stitch(imgs,"horizontal",y-1,x)
-                #img = img[offset_y:,:]
-                #cv2.imwrite("test.jpg",img)
-                imgs = [img]    
-            
-            
-            if(x==0):
-                stitch_img = np.zeros((5000, 3262, 3),dtype="uint8")
-                stitch_img[0:img.shape[0],0:img.shape[1]] = img
-                img_str = cv2.imencode('.jpg', stitch_img)[1].tostring()
-                self.send_binary(img_str)
-            if(y == 14):
-                imgs = []
-                img = img[offset_y:,:] 
-                result.append(img)
-            
-            # stitch image from left to right
-            '''
-            if(len(imgs) * 10 == width):
-                imgs = imgs[::-1]
-                img = stitch(imgs,"horizontal")
-                result.append(img)
-                imgs = []
-                # return the result to front-end when there is one image
-                if(len(result) == 1):
-                    img_str = cv2.imencode('.jpg', img)[1].tostring()
-                
-                #self.send_binary(img_str)
-            '''
-            if len(result) > 1:
-                if x == 9:
-                    global height
-                    height = result[0].shape[0]
-                    cv2.imwrite("result6.jpg",result[0])
-                    
-                    result = [result[1]]
-                elif x == 18:
-                    global height
-                    height = stitch_img.shape[0]
-                    cv2.imwrite("result7.jpg",result[0])
-                    result = [result[1]]
-                else:
-                    img,offset_y = stitch(result,"vertical",0,x-1)
-                    result = [img] 
-                     
-                # return the result to front-end 
-                if x < 9:
-                    stitch_img[0:img.shape[0],:,:] = img
-                  
-                else:
-                    a = [stitch_img[0:height,:,:],img]
-                    if x < 18:
-                        stitch_img,offset_y = stitch(a,"vertical",0,8)
-                    else:
-                        stitch_img,offset_y = stitch(a,"vertical",0,17)
-                    
-                #img_str = cv2.imencode('.jpg', img)[1].tostring()
-                cv2.imwrite("stitch.jpg",stitch_img)
-                img_str = cv2.imencode('.jpg', stitch_img)[1].tostring()
-
-
-                self.send_binary(img_str)
-            #img_str = merge_img.tobytes("jpeg","RGB")
-            
-
-            self.send_text(str(x) + " " + str(y))
-
-        if(text == "cancel"):
-            print(text)
-            scan = False
-            merge_img = 0
-            
-
-
-    def on_binary_message(self, buf):
-        print(buf)
-        self.send_binary(buf)
+f = open("data/H1.p","rb")
+H1_lst = pickle.load(f)['mtx']
 
 
 class MyHttpRequestHandler(SimpleHTTPRequestHandler):
@@ -195,7 +53,7 @@ class MyHttpRequestHandler(SimpleHTTPRequestHandler):
         self.send_header('Sec-WebSocket-Accept', accept_key.decode('ascii'))
         self.end_headers()
 
-        ws = MyWebsocketHandler(self.request, "", self.server)
+        ws = ScanSocketHandler(self.request, "", self.server, H_lst,H1_lst)
         ws.serve_forever()
 
 
