@@ -129,17 +129,16 @@ class MyWebsocketHandler(WebSocketHandler):
                 if x == 9:
                     global height
                     height = result[0].shape[0]
+                    cv2.imwrite("result6.jpg",result[0])
+                    
                     result = [result[1]]
-                    cv2.imwrite("result.jpg",result[0])
                 elif x == 18:
                     global height
                     height = stitch_img.shape[0]
+                    cv2.imwrite("result7.jpg",result[0])
                     result = [result[1]]
-                    cv2.imwrite("result.jpg",result[0])
                 else:
-                    print("a")
                     img,offset_y = stitch(result,"vertical",0,x-1)
-                    print(img.shape)
                     result = [img] 
                      
                 # return the result to front-end 
@@ -154,6 +153,7 @@ class MyWebsocketHandler(WebSocketHandler):
                         stitch_img,offset_y = stitch(a,"vertical",0,17)
                     
                 #img_str = cv2.imencode('.jpg', img)[1].tostring()
+                cv2.imwrite("stitch.jpg",stitch_img)
                 img_str = cv2.imencode('.jpg', stitch_img)[1].tostring()
 
 
