@@ -86,7 +86,6 @@ class ScanSocketHandler(WebSocketHandler):
             
             if(y == 14):
                 self.imgs = []
-                print(offset_y)
                 img = img[offset_y:,:] 
                 self.result.append(img)
             
@@ -96,7 +95,7 @@ class ScanSocketHandler(WebSocketHandler):
                     self.height = self.result[0].shape[0]
                     self.result = [self.result[1]]
                 elif x == 18:
-                    self.height = self.stitch_img.shape[0]
+                    #self.height = self.stitch_img.shape[0]
                     self.result = [self.result[1]]
                 else:
                     img,offset_y = self.stitcher.stitch(self.result[0],self.result[1],"vertical",self.H_vertical_list[x-1])
@@ -113,6 +112,8 @@ class ScanSocketHandler(WebSocketHandler):
                     else:
                         stitch_img,offset_y = self.stitcher.stitch(self.stitch_img[0:self.height,:,:],img,"vertical",self.H_vertical_list[17])
                     
+                    if x == 17:
+                        self.height = stitch_img.shape[0]
                     self.stitch_img[0:stitch_img.shape[0],0:stitch_img.shape[1]] = stitch_img
 
                 #img_str = cv2.imencode('.jpg', img)[1].tostring()
