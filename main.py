@@ -15,7 +15,6 @@ import numpy as np
 import sys
 import getopt
 
-camera = cv2.VideoCapture(0)
 params = {}
 
 

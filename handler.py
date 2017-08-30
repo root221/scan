@@ -6,6 +6,8 @@ from scan import init,get_img
 from stitch import Stitcher
 import pickle
 camera = cv2.VideoCapture(0)
+f = open("data/calibration.p","rb")
+homograpy = pickle.load(f)['mtx']
 class ScanSocketHandler(WebSocketHandler):
     def __init__(self, req, addr, server, H_horizontal_list,H_vertical_list,ser_port,ser_baudrate,output_filename="result.jpg"):
         super(ScanSocketHandler, self).__init__(req, addr, server)
@@ -108,10 +110,18 @@ class ScanSocketHandler(WebSocketHandler):
             if(x<27):
                 self.send_text(str(x) + " " + str(y))
 
+            # finish scanning
             else:
                 self.send_text("finish scanning")
-
-                cv2.imwrite(self.output_filename,self.stitch_img)
+                # calibrate the image
+                bottom_left = np.dot(homograpy,np.array([0,self.stitch_img.shape[0],1])) 
+                bottom_left = bottom_left / bottom_left[-1]
+                bottom_right = np.dot(homograpy,np.array([self.stitch_img.shape[1],self.stitch_img.shape[0],1]))
+                bottom_right = bottom_right / bottom_right[-1]
+                stitch_img = cv2.warpPerspective(self.stitch_img,homograpy,(int(bottom_right[0]),int(bottom_right[1])))
+                # crop the black region
+                stitch_img = stitch_img[:int(bottom_left[1]),int(bottom_left[0]):]
+                cv2.imwrite(self.output_filename,stitch_img)
         
         if(text == "cancel"):
             self.scan = False
