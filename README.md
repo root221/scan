@@ -18,8 +18,12 @@ An scanner for laser engraver.
 - open scan.html with browser
 - click the scan button
 
-
-
+## Example for generating homography list
+``` python
+	for i in range(3):
+		print(i)
+	end
+```
 ## Result
 
 <center>
