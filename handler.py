@@ -2,19 +2,22 @@ import socket
 from websocket import WebSocketHandler
 import numpy as np
 import cv2
-from PIL import Image
-from scan import init,get_img,crop_image
+from scan import init,get_img
 from stitch import Stitcher
-
+import pickle
 camera = cv2.VideoCapture(0)
 class ScanSocketHandler(WebSocketHandler):
-    def __init__(self, req, addr, server, H_horizontal_list,H_vertical_list):
+    def __init__(self, req, addr, server, H_horizontal_list,H_vertical_list,ser_port,ser_baudrate,output_filename="result.jpg"):
         super(ScanSocketHandler, self).__init__(req, addr, server)
     	self.scan = False
-    	self.H_horizontal_list = H_horizontal_list
+    	
+        self.H_horizontal_list = H_horizontal_list
         self.H_vertical_list = H_vertical_list
         self.stitcher = Stitcher()
+        self.output_filename = output_filename
 
+        self.ser_port = ser_port
+        self.ser_baudrate = ser_baudrate
     def serve_forever(self):
         #try:
         while True:
@@ -30,42 +33,26 @@ class ScanSocketHandler(WebSocketHandler):
         #    print("Error", e)
 
     def on_text_message(self, text):
+        
         if(text == "scan"):
-           
             self.result = []
-            self.ser = init()
+            self.ser = init(self.ser_port,self.ser_baudrate)
             self.imgs = []           
             self.height = 0 
             self.stitch_img = np.zeros((5469, 3262, 3),dtype="uint8")
             self.send_text("start scanning")
         
         if(text[0:10] == "get image "):
-            
             text = text[10:]
-           
             x,y = text.split(" ")
             x = int(x)
             y = int(y) 
             img = get_img(camera,self.ser,x*10,y*10)
-            #img = get_img(camera,i*10,j*10)
-            # convert ndarray to str
-            #img_str = cv2.imencode('.jpg', img)[1].tostring()
             
-            # convert ndarray to PIL Image
-            #OpenCV stores color image in BGR format. So, the converted PIL image is also in BGR-format. The standard PIL image is stored in RGB format. 
-            RGBImg =  np.zeros(img.shape,img.dtype)
-            RGBImg[:,:,0] = img[:,:,2]
-            RGBImg[:,:,1] = img[:,:,1]
-            RGBImg[:,:,2] = img[:,:,0]
-            pil_img = Image.fromarray(RGBImg)
+            # crop the image
+            img = img[60:660,120:1160]
             
-            # crop the image 
-            crop_img = crop_image(pil_img)
-            
-            # convert PIL to opencv image
-            open_cv_image = np.array(crop_img)  
-            open_cv_image = open_cv_image[:, :, ::-1].copy()
-            self.imgs.append(open_cv_image)
+            self.imgs.append(img)
             
             # stitch image
             
@@ -102,7 +89,6 @@ class ScanSocketHandler(WebSocketHandler):
                 # return the result to front-end 
                 if x < 9:
                     self.stitch_img[0:img.shape[0],:,:] = img
-                  
                 
                 else:
                     if x < 18:
@@ -114,17 +100,18 @@ class ScanSocketHandler(WebSocketHandler):
                         self.height = stitch_img.shape[0]
                     self.stitch_img[0:stitch_img.shape[0],0:stitch_img.shape[1]] = stitch_img
 
-                #img_str = cv2.imencode('.jpg', img)[1].tostring()
-                cv2.imwrite("stitch.jpg",self.stitch_img)
                 img_str = cv2.imencode('.jpg', self.stitch_img)[1].tostring()
 
 
                 self.send_binary(img_str)
-            #img_str = merge_img.tobytes("jpeg","RGB")
             
+            if(x<27):
+                self.send_text(str(x) + " " + str(y))
 
-            self.send_text(str(x) + " " + str(y))
-
+            else:
+                self.send_text("finish scanning")
+                cv2.imwrite(self.output_filename,self.stitch_img)
+        
         if(text == "cancel"):
             self.scan = False
             merge_img = 0

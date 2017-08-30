@@ -11,20 +11,10 @@ import pickle
 import numpy as np
 
 from websocket import WebSocketHandler, MAGIC_STRING
-from scan import init,get_img,crop_image
+from scan import init,get_img
 from stitch import Stitcher
-from PIL import Image
 from handler import ScanSocketHandler
 camera = cv2.VideoCapture(0)
-#camera.set(3,1280)
-#camera.set(4,720)
-#camera.set(3,1024)
-#camera.set(4,768)
-#camera.set(5,30)
-#camera.set(15, -8)
-
-width = 90
-height = 60
 
 f = open("data/H.p","rb")
 H_lst = pickle.load(f)['mtx']
@@ -53,7 +43,7 @@ class MyHttpRequestHandler(SimpleHTTPRequestHandler):
         self.send_header('Sec-WebSocket-Accept', accept_key.decode('ascii'))
         self.end_headers()
 
-        ws = ScanSocketHandler(self.request, "", self.server, H_lst,H1_lst)
+        ws = ScanSocketHandler(self.request, "", self.server, H_lst,H1_lst,"/dev/cu.wchusbserial1410",115200)
         ws.serve_forever()
 
 
