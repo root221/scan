@@ -20,9 +20,20 @@ An scanner for laser engraver.
 
 ## Example for generating homography list
 ``` python
-	for i in range(3):
-		print(i)
-	end
+	
+	H_lst = []
+	stitcher = Stitcher()
+	for i in range((len(imgs)-1)):
+		img1 = imgs[i]
+		img2 = imgs[i+1]
+		H = stitcher.find_homography(img1,img2)
+		H_lst.append(H)
+		img,offset = stitcher.stitch(img1,img2,"horizontal",H,blend=1)
+		imgs[i+1] = img
+
+	mtx_pickle = {}
+	mtx_pickle["mtx"] = H_lst
+	pickle.dump( mtx_pickle, open( "H.p", "wb" ) )	
 ```
 ## Result
 
