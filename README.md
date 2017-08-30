@@ -8,7 +8,10 @@ An scanner for laser engraver.
 
 
 ## Usage
-- python main.py -o result.jpg -x data/H.p -y data/H1.p -b 115200 -p /dev/cu.wchusbserial1410  
+- python main.py -o result.jpg -x data/H.p -y data/H1.p -b 115200 -p /dev/cu.wchusbserial1410
+- -o output image filename
+- -p serial port
+- -b baud rate
 - open scan.html with browser
 - click the scan button
 
