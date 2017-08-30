@@ -20,8 +20,10 @@ An scanner for laser engraver.
 ## Result
 
 <center>
-<img src="examples/stitch.jpg"><br>
+<img src="examples/stitch.jpg">
 <caption>image without calibration</caption>
-<img src="examples/tree.jpg"><br>
+<br>
+<img src="examples/tree.jpg">
 <caption>image after calibrate</caption>
+<br>
 </center>
