@@ -21,6 +21,7 @@ An scanner for laser engraver.
 
 <center>
 <img src="examples/stitch.jpg"><br>
+<caption>image without calibration</caption>
 <img src="examples/tree.jpg"><br>
 <caption>image after calibrate</caption>
 </center>
