@@ -110,6 +110,7 @@ class ScanSocketHandler(WebSocketHandler):
 
             else:
                 self.send_text("finish scanning")
+
                 cv2.imwrite(self.output_filename,self.stitch_img)
         
         if(text == "cancel"):

@@ -1,14 +1,16 @@
 ## Introduction
 An scanner for laser engraver.
 
-## Requierment
+## Dependency
 - pip install opencv
 - pip install numpy
 - pip install pyserial
 
 
 ## Usage
-- python main.py 
+- python main.py -o result.jpg -x data/H.p -y data/H1.p -b 115200 -p /dev/cu.wchusbserial1410  
+- open scan.html with browser
+- click the scan button
 
 ## Result
 

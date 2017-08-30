@@ -6,21 +6,17 @@ from errno import EAGAIN
 import SocketServer
 import socket
 import base64
+from websocket import WebSocketHandler, MAGIC_STRING
+
+from handler import ScanSocketHandler
 import cv2
 import pickle
 import numpy as np
+import sys
+import getopt
 
-from websocket import WebSocketHandler, MAGIC_STRING
-from scan import init,get_img
-from stitch import Stitcher
-from handler import ScanSocketHandler
 camera = cv2.VideoCapture(0)
-
-f = open("data/H.p","rb")
-H_lst = pickle.load(f)['mtx']
-
-f = open("data/H1.p","rb")
-H1_lst = pickle.load(f)['mtx']
+params = {}
 
 
 class MyHttpRequestHandler(SimpleHTTPRequestHandler):
@@ -43,7 +39,7 @@ class MyHttpRequestHandler(SimpleHTTPRequestHandler):
         self.send_header('Sec-WebSocket-Accept', accept_key.decode('ascii'))
         self.end_headers()
 
-        ws = ScanSocketHandler(self.request, "", self.server, H_lst,H1_lst,"/dev/cu.wchusbserial1410",115200)
+        ws = ScanSocketHandler(self.request, "", self.server, params['H_lst'],params['H1_lst'],params['ser_port'],params['ser_baudrate'])
         ws.serve_forever()
 
 
@@ -52,6 +48,34 @@ class ThreadingHTTPServer(SocketServer.ThreadingMixIn, HTTPServer):
 
 
 def main():
+    opts,args = getopt.getopt(sys.argv[1:], "ho:x:y:p:b:", ["help", "output="])
+    for opt,arg in opts:
+
+        if opt in ("-h", "--help"):
+            pass
+        
+        elif opt in ("-o", "--output"):    
+            params['output'] = arg
+
+        elif opt in ("-x"):
+            H_lst = arg
+
+        elif opt in ("-y"):
+            H1_lst = arg
+
+        elif opt in ("-p"):
+            params['ser_port'] = arg
+
+        elif opt in ("-b"):
+            params['ser_baudrate'] = arg
+
+
+    f = open("data/H.p","rb")
+    H_lst = pickle.load(f)['mtx']
+    params['H_lst'] = H_lst
+    f = open("data/H1.p","rb")
+    H1_lst = pickle.load(f)['mtx']
+    params['H1_lst'] = H1_lst
     httpd = ThreadingHTTPServer(("", 8081), MyHttpRequestHandler)
     httpd.serve_forever()
 

@@ -127,7 +127,7 @@
               x += 1
               y = 0
             }
-
+            
             ws.send("get image " + x + " " + y)
             $("#bar").css("width", x*10 + y + "%")
             console.log(msg.data)
