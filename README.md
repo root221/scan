@@ -14,3 +14,4 @@
 
 <center>
 <img src="examples/stitch.jpg"><br>
+</center>
