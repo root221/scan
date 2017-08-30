@@ -11,3 +11,6 @@
 - python main.py 
 
 ## Result
+
+<center>
+<img src="examples/stitch.jpg"><br>
