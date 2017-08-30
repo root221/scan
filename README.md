@@ -2,12 +2,12 @@
 
 
 ## Requierment
-pip install opencv
-pip install numpy
-pip install pyserial
+- pip install opencv
+- pip install numpy
+- pip install pyserial
 
 
 ## Usage
-python main.py 
+- python main.py 
 
 ## Result
