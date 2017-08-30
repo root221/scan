@@ -127,8 +127,8 @@
               x += 1
               y = 0
             }
-            if(x<27)
-              ws.send("get image " + x + " " + y)
+            //if(x<27)
+            ws.send("get image " + x + " " + y)
             $("#bar").css("width", x*10 + y + "%")
             console.log(msg.data)
           }

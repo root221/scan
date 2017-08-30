@@ -18,7 +18,7 @@ An scanner for laser engraver.
 - open scan.html with browser
 - click the scan button
 
-## Example for generating homography list
+## Example for generating homography list 
 ``` python
 
 	from stitch import Stitcher	
@@ -33,7 +33,7 @@ An scanner for laser engraver.
 		img_list[i+1] = img
 
 	matrix_pickle = {}
-	matrix_pickle["mtx"] = H_lst
+	matrix_pickle["mtx"] = H_list
 	pickle.dump( matrix_pickle, open( "H.p", "wb" ) )	
 ```
 ## Result
