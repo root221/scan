@@ -8,6 +8,7 @@ An scanner for laser engraver.
 
 
 ## Usage
+- generate file that contain homography list use the function find_homography in Stitcher class(define in stitch.py)
 - python main.py -o result.jpg -x data/H.p -y data/H1.p -b 115200 -p /dev/cu.wchusbserial1410
 - -o output image filename
 - -x the filename that contain horizontal homograpy list 
@@ -16,6 +17,8 @@ An scanner for laser engraver.
 - -b baud rate
 - open scan.html with browser
 - click the scan button
+
+
 
 ## Result
 
