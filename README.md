@@ -22,19 +22,19 @@ An scanner for laser engraver.
 ``` python
 
 	from stitch import Stitcher	
-	H_lst = []
+	H_list = []
 	stitcher = Stitcher()
 	for i in range((len(img_list)-1)):
 		img1 = img_list[i]
 		img2 = img_list[i+1]
 		H = stitcher.find_homography(img1,img2)
-		H_lst.append(H)
+		H_list.append(H)
 		img,offset = stitcher.stitch(img1,img2,"horizontal",H,blend=1)
 		img_list[i+1] = img
 
-	mtx_pickle = {}
-	mtx_pickle["mtx"] = H_lst
-	pickle.dump( mtx_pickle, open( "H.p", "wb" ) )	
+	matrix_pickle = {}
+	matrix_pickle["mtx"] = H_lst
+	pickle.dump( matrix_pickle, open( "H.p", "wb" ) )	
 ```
 ## Result
 
