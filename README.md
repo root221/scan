@@ -49,6 +49,6 @@ An scanner for laser engraver.
 
 ## WebSources for image stitching
 
-- [1] http://www.pyimagesearch.com/2016/01/11/opencv-panorama-stitching/
-- [2] http://matthewalunbrown.com/papers/ijcv2007.pdf
+[1] http://www.pyimagesearch.com/2016/01/11/opencv-panorama-stitching/
+[2] http://matthewalunbrown.com/papers/ijcv2007.pdf
 
