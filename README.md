@@ -1,5 +1,5 @@
 ## Introduction
-An scanner for laser engraver.
+A scanner for laser engraver.
 
 ## Dependency
 - pip install opencv
